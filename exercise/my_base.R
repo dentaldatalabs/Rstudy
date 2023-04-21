@@ -114,3 +114,184 @@ max(x)
 max(y)
 
 sapply(list(x,y), max)
+
+getwd()
+setwd('exercise')
+setwd('~/R-skku-biohrs/data')
+getwd()
+ex <- read.csv("example_g1e.csv")
+head(ex)
+
+library(readxl)
+ex.excel <- read_excel("example_g1e.xlsx", sheet = 1)
+
+library(haven)
+ex.sas <- read_sas("example_g1e.sas7bdat")
+ex.spss <- read_sav("example_g1e.sav")
+head(ex.spss)
+write.csv(ex, "example_g1e_ex.csv", row.names = F)
+
+
+head(ex, 6)
+head(ex, 100)
+str(ex)
+
+head(ex)
+
+str(ex)
+names(ex)
+colnames(ex)
+dim(ex)
+
+nrow(ex)
+ncol(ex)
+class(ex)
+class(ex.spss)
+
+summary(ex)
+
+
+ex$EXMD_BZ_YYYY
+class(ex$EXMD_BZ_YYYY)
+ex[, "EXMD_BZ_YYYY"] 
+ex[["EXMD_BZ_YYYY"]]
+ex[, 1]
+names(ex)
+ex$HME_YYYYMM
+
+class(ex[, c("EXMD_BZ_YYYY", "RN_INDI", "BMI")])
+
+ex$EXMD_BZ_YYYY[1:50]
+ex[1:50, 1]
+
+
+mean(ex$BMI)
+BMI_cat <- (ex$BMI >= 25)
+table(BMI_cat)
+rows <- which(ex$BMI >= 25)
+rows
+values <- ex$BMI[ex$BMI >= 25]
+values
+BMI_HGHT_and <- (ex$BMI >= 25 & ex$HGHT >= 175)
+BMI_HGHT_and
+BMI_HGHT_or <- (ex$BMI >= 25 | ex$HGHT >= 175)
+BMI_HGHT_or
+
+
+ex$zero <- 0
+ex$zero
+ex$BMI_cat <- BMI_cat
+ex$BMI_cat
+ex$BMI_cat <- as.integer(BMI_cat)
+ex$BMI_cat
+ex$BMI_cat <- as.character(BMI_cat)
+ex$BMI_cat
+
+vars.cat <- c("RN_INDI", "Q_PHX_DX_STK", "Q_PHX_DX_HTDZ", "Q_PHX_DX_HTN", "Q_PHX_DX_DM", "Q_PHX_DX_DLD", "Q_PHX_DX_PTB", 
+              "Q_HBV_AG", "Q_SMK_YN", "Q_DRK_FRQ_V09N")
+
+vars.cat
+names(ex)[c(2, 4:12)]
+vars.cat <- c("RN_INDI", grep("Q_", names(ex), value = T))
+vars.cat
+
+vars.conti <- setdiff(names(ex), vars.cat)
+vars.conti
+
+
+for (vn in vars.cat){
+  ex[,vn] <- as.factor(ex[,vn])
+}
+
+for (vn in vars.conti){
+  ex[,vn] <- as.numeric(ex[,vn])
+}
+summary(ex)
+str(ex)
+
+ex$Q_PHX_DX_STK
+as.numeric(ex$Q_PHX_DX_STK) 
+as.numeric(as.character(ex$Q_PHX_DX_STK))
+ll <- list(ex$Q_PHX_DX_STK,
+     as.numeric(ex$Q_PHX_DX_STK) ,
+     as.numeric(as.character(ex$Q_PHX_DX_STK)))
+sapply(ll, class)
+ll
+
+ex$HME_YYYYMM
+addDate <- paste(ex$HME_YYYYMM, "01", sep = "")
+ex$HME_YYYYMM <- as.Date(addDate, format = "%Y%m%d")
+ex$HME_YYYYMM
+class(ex$HME_YYYYMM)
+head(ex$HME_YYYYMM)
+
+
+tapply(ex$LDL, ex$EXMD_BZ_YYYY, mean)
+ex$EXMD_BZ_YYYY
+class(ex$EXMD_BZ_YYYY)
+tapply(ex$LDL,ex$EXMD_BZ_YYYY, 
+       function(x){
+         mean(x, na.rm =T)
+       })
+
+
+EDA_rm_NA <- function(data_df){
+  # 결측치 개수 확인
+  count_NA <- count_NA_column(data_df)
+  
+  #NA가 적어도 하나 있는 열들만
+  least_one_NA <- which(count_NA != 0)
+  
+  # 있으면 결측치 / ROW 수
+  NA_ratio <- least_one_NA / dim(data_df)[1]
+  
+  # 결측치 ROW가 0.1 미만인 열의 이름 추출
+  filtered_names <- names(which(NA_ratio < 0.1))
+  
+  # NA 10% 미만인열만 추출
+  data_df_under_10 <- data_df[filtered_names]
+  
+  return(data_df_under_10)
+  # 아니라면 변수형 확인
+    # 연속형이라면 중간값
+    # 범주형이라면 최빈값
+  
+
+  
+}
+
+#column별 결측치
+count_NA_column <- function(data_df){
+  #각 column별 NA 갯수
+  return(colSums(is.na(data_df)))
+
+
+  
+}
+
+#NA 비율 10% 이상인지 확인
+is_NA_over_10_per <- function(NA_count, row_count){
+  if (NA_count / row_count >= 0.1){
+    return(T)
+  } else{
+    return(F)
+  }
+  
+}
+
+EDA_rm <- function(data_df){
+  count_na <- colSums(is.na(data_df))
+  row_count <- dim(data_df)[1]
+  for (column in count_na){
+    select_column <- data_df[names(column)]
+      if (column / row_count >= 0.1){
+        data_df <- data_df[-names(column)]
+    } else{
+        if (is.numeric(select_column)){
+          
+        }
+      }
+      
+    
+  }
+}
