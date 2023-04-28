@@ -295,3 +295,123 @@ EDA_rm <- function(data_df){
     
   }
 }
+
+
+#if na is over 10% -> rm column
+# then if type is conti -> median
+# if type is cat -> mode
+
+getwd()
+setwd("/Rstudy")
+setwd("~/Rstudy/R-skku-biohrs/data/")
+ex <- read.csv("example_g1e.csv")
+head(ex)
+summary(ex)
+type(ex)
+str(ex)
+names(ex)
+dim(ex)
+nrow(ex)
+class(ex)
+unique(ex)
+mean(ex$WGHT)
+names(ex)
+vars.cat <- names(ex)[c(2,4:12)]
+
+for (vn in vars.cat){
+  ex[, vn] <- as.factor(ex[, vn])
+}
+summary(ex)
+class(ex)
+class(ex$EXMD_BZ_YYYY)
+names(ex)
+class(ex[, "EXMD_BZ_YYYY"])
+for (name in names(ex)){
+  print(class(ex[,name]))
+}
+
+lapply(names(ex), function(name){c(name,class(ex[,name]))})
+
+head(ex)
+str(ex)
+vars.cat <- names(ex)[c(2,4:12)]
+vars.cat
+vars.conti <- setdiff(names(ex), vars.cat)
+vars.conti
+
+sapply(vars.cat, function(name){ex[, name] <- as.factor(ex[, name])})
+sapply(vars.conti, function(name){ex[,name] <- as.numeric(ex[,name])})
+
+summary(ex)
+str(ex)
+for (vn in vars.cat){                                          ## for loop: as.factor
+  ex[, vn] <- as.factor(ex[, vn])
+}
+
+for (vn in vars.conti){                                        ## for loop: as.numeric
+  ex[, vn] <- as.numeric(ex[, vn])
+}
+
+#choose table which NA is >= 10%
+
+filter_10 <- function(table){
+  length_of_rows <- nrow(table)
+  NA_percent <- sapply(names(table), function(name){(sum(is.na(table[,name]))/length_of_rows) >= 0.1})
+  names_filterd <- NULL
+  return(ex[,names(subset(NA_percent, !NA_percent))])
+    
+  
+}
+
+str(filter_10(ex))
+
+getmode <- function(v){
+  uniqv <- unique(v)
+  uniqv[which.max(tabulate(match(v, uniqv)))]
+}
+
+getmode(ex$Q_PHX_DX_STK)
+
+fill_na <- function(filtered_table){ 
+  print(str(filtered_table))
+  for (name in names(filtered_table)){
+    if (is.factor(filtered_table[,name])){
+      print(class(filtered_table[,name]))
+      mode_of_col <- getmode(filtered_table[,name])
+      print(class(getmode(filtered_table[,name])))
+      print(class(mode_of_col))
+      
+      
+      filtered_table[,name] <- ifelse(is.na(filtered_table[,name]),getmode(filtered_table[,name]),filtered_table[,name] )
+      print(class(filtered_table[,name]))
+      filtered_table[,name] <- as.factor(filtered_table[,name])
+      print(class(filtered_table[,name]))
+      
+      print(" ")
+    } else if (is.numeric(filtered_table[,name])){
+      median_of_col <- median(filtered_table[,name], na.rm = T)
+      
+      filtered_table[,name] <- ifelse(is.na(filtered_table[,name]), median_of_col, filtered_table[,name])
+      print(median_of_col)
+      print(" ")
+      
+    } else {
+      
+      
+    }
+   
+    
+    
+  }
+  return(filtered_table)
+}
+
+result <- fill_na(filter_10(ex))
+summary(result)
+str(result)
+
+tapply(ex$LDL, ex$EXMD_BZ_YYYY, 
+       function(x){
+         mean(x, na.rm = T)
+       })    
+summary(lm(LDL ~ HDL, data = ex))
